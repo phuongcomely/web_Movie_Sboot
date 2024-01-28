@@ -99,20 +99,5 @@ public class WebController {
         }
         return "web/dang-nhap"; // Nếu chưa đăng nhập thì hiển thị trang đăng nhập
     }
-    @GetMapping("/admin/blogs")
-    public String getBlogs(){
-        return "web/template-blog-admin/blog-index";
-    }
-    @GetMapping("/admin/blogs/own-blogs")
-    public String getOwnBlogs(){
-        return "web/template-blog-admin/blog-yourself";
-    }
-    @GetMapping("/admin/blogs/create")
-    public String createBlogs(){
-        return "web/template-blog-admin/blog-create";
-    }
-    @GetMapping("/admin/blogs/{id}/detail")
-    public String getBlogDetail(){
-        return "web/template-blog-admin/blog-detail";
-    }
+
 }

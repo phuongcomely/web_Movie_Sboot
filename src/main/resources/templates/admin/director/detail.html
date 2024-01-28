@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{admin/layout/layout :: layout(~{:: title}, ~{:: #css}, ~{:: .content-wrapper}, ~{:: #js})}">
+
+<head>
+    <title th:text="${director.name}">Thực hành làm ứng dụng Meal Finder API với Javascript (Phần 2)</title>
+
+    <th:block id="css">
+        <link rel="stylesheet" th:href="@{/admin-assets/admin-lte/plugins/summernote/summernote-bs4.min.css}"/>
+        <link rel="stylesheet" th:href="@{/admin-assets/admin-lte/plugins/select2/css/select2.min.css}"/>
+        <link rel="stylesheet" th:href="@{/admin-assets/assets/css/style.css}">
+    </th:block>
+</head>
+
+<body>
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-12">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/admin/dashboard">Dashboard</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/directors">Director</a>
+                        </li>
+                        <li class="breadcrumb-item active" th:text="${director.name}">
+                            Thực hành làm ứng dụng Meal Finder API
+                            với Javascript (Phần 2)
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row py-2">
+                <div class="col-6">
+                    <a href="/admin/directors" type="button" class="btn btn-default">
+                        <i class="fas fa-chevron-left"></i> Quay lại
+                    </a>
+                    <button type="button" class="btn btn-info px-4" id="btn-update">
+                        Cập nhật
+                    </button>
+                </div>
+
+                <div class="col-6 d-flex justify-content-end">
+                    <button type="button" class="btn btn-danger px-4" id="btn-delete">
+                        Xóa
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <form id="form-update-director">
+                                        <div class="form-group">
+                                            <label>Họ tên</label>
+                                            <input type="text" class="form-control" id="name" name="name" th:value="${director.name}"/>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Mô tả ngắn</label>
+                                            <textarea id="description" class="form-control" rows="3"
+                                                      name="description" th:text="${director.description}"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Ngày sinh</label>
+                                            <input type="date" class="form-control" id="birthday" name="birthday" th:value="${#dates.format(director.birthday, 'yyyy-MM-dd')}" />
+                                        </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <div class="image-preview-container mb-3">
+                                            <img th:src="${director.avatar}" alt="" id="image-preview"/>
+                                        </div>
+                                        <label for="image" class="btn btn-info btn-flat rounded">
+                                            Chọn hình ảnh
+                                        </label>
+                                        <input type="file" id="image" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<th:block id="js">
+    <script th:src="@{/admin-assets/admin-lte/plugins/summernote/summernote-bs4.min.js}"></script>
+    <script th:src="@{/admin-assets/admin-lte/plugins/select2/js/select2.full.min.js}"></script>
+    <script th:inline="javascript">
+        const director = [[${director}]];
+
+        $('#content').summernote({
+            height: 500,
+        })
+
+        $("#content").css({
+            "display": "block",
+            "height": "0",
+            "padding": "0",
+            "border": "none"
+        })
+
+        $('#form-update-director').validate({
+            rules: {
+                name: {
+                    required: true
+                },
+                description: {
+                    required: true
+                },
+                birthday: {
+                    required: true
+                }
+            },
+            messages: {
+                name: {
+                    required: "Tên không được để trống"
+                },
+                description: {
+                    required: "Mô tả ngắn không được để trống"
+                },
+                birthday: {
+                    required: "Ngaày sinh không được để trống"
+                }
+            },
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+
+        // Lưu bài viết
+        const nameEl = document.getElementById('name');
+        const descriptionEl = document.getElementById('description');
+        const birthdayEl = document.getElementById('birthday');
+
+        const btnUpdate = document.getElementById('btn-update');
+        btnUpdate.addEventListener('click', function () {
+            if (!$('#form-update-director').valid()) {
+                return;
+            }
+
+            // Gửi dữ liệu lên server
+            const data = {
+                name: nameEl.value,
+                description: descriptionEl.value,
+                birthday: birthdayEl.value
+            }
+
+            // Sử dụng axios để gửi dữ liệu lên server
+            axios.put(`/api/admin/directors/${director.id}`, data)
+                .then(function (response) {
+                    toastr.success('Cập nhật dao dien thành công.')
+                })
+                .catch(function (error) {
+                    console.log(error)
+                    toastr.error(error.response.data.message)
+                })
+        })
+
+        // Xóa bài viết
+        const btnDelete = document.getElementById('btn-delete')
+        btnDelete.addEventListener('click', function () {
+            const isConfirm = confirm('Bạn có chắc chắn muốn xóa dao dien này?')
+            if (!isConfirm) {
+                return
+            }
+            axios.delete(`/api/admin/directors/${director.id}`)
+                .then(function (response) {
+                    toastr.success('Xóa đạo diêễn thành công')
+                    setTimeout(function () {
+                        window.location.href = '/admin/directors'
+                    }, 1500)
+                })
+                .catch(function (error) {
+                    console.log(error)
+                    toastr.error(error.response.data.message)
+                })
+        })
+
+        // Upload image
+        const imagePreview = document.getElementById('image-preview')
+        const imageInput = document.getElementById('image')
+
+        imageInput.addEventListener("change", (e) => {
+            // Lấy ra file vừa được chọn
+            const file = e.target.files[0]
+
+            // Tạo đối tượng form data để đưa dữ liệu vào gửi đi
+            const formData = new FormData()
+            formData.append('file', file)
+
+            // Goọi api sử dung axios
+            axios.post(`/api/admin/directors/${director.id}/upload-thumbnail`, formData)
+                .then(res => {
+                    // Hiển thị hình ảnh vừa được upload lên
+                    imagePreview.src = res.data
+
+                    toastr.success('Upload hình ảnh thành công.')
+                })
+                .catch(err => {
+                    console.log(err)
+                    toastr.error(err.response.data.message)
+                })
+        })
+    </script>
+</th:block>
+
+</body>
+
+</html>
